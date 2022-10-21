@@ -1,0 +1,82 @@
+/*
+ * File:   main.c
+ * Author: student
+ *
+ * Created on October 21, 2022, 3:58 PM
+ */
+
+
+
+
+
+
+
+
+#pragma config ICS = PGD2               // ICD Communication Channel Select bits (Communicate on PGEC2 and PGED2)
+#include "xc.h"
+#include "p24FJ1024GB610.h"
+#include "stdlib.h"
+#include "stdio.h"
+#define FCY 2000000
+#include <libpic30.h>
+#pragma config JTAGEN = OFF//limpar pins do SCL1 e SDA1
+#include <stdbool.h>
+
+int main(void) {
+    SPI1CON1Lbits.SPIEN = 0; // Disable the SPI peripheral during configuration
+    IFS0bits.SPI1IF = 0; // Clear the SPI peripheral interrupt flag
+    IEC0bits.SPI1IE = 0; // Disable the SPI peripheral interrupt flag
+    SPI1CON1bits.DISSCK = 0; // Enable generation of SCK signal
+    SPI1CON1bits.DISSDO = 0; // Enable generation of SDO signal
+    SPI1CON1bits.MODE16 = 0; // Set 8-bit mode
+    SPI1CON1bits.SMP= 0; // Input data sampled at mid-bit
+    SPI1CON1bits.CKP = 0; // Idle is SCK low
+    SPI1CON1bits.CKE = 1; // Data changes on SCK falling edge
+    //SPI1CON1bits.SPRE = 4;  // Secondary prescaler= 4:1
+    //SPI1CON1bits.PPRE = 2;  // Primary prescaler= 4:1 (1 MHz if FCY = 16 MHz)
+    SPI1CON1bits.MSTEN = 1; // Set for master mode
+    SPI1CON2 = 0; // Fully disable frame mode
+    
+    SPI1BUFL = 0;
+    
+    PORTFbits.RF5 = 0;
+    RPINR20bits.SDI1R =17;
+    LATFbits.LATF5 = 1;
+    
+    PORTFbits.RF4 = 0;
+    RPINR20bits.SCK1R =10;
+    LATFbits.LATF5 = 1;
+    
+    PORTDbits.RD15 = 0;
+    RPOR2bits.RP5R =7 ;//configurar output SDO
+    LATDbits.LATD15 = 0;
+    
+    SPI1CON1Lbits.SPIEN = 1;
+    
+    uint8_t data_in[2]; // Buffers for data
+    uint8_t data_out[2];
+    
+    
+    
+    while(1){
+        
+        
+        SPI1BUFL = 0x46; // write to buffer for TX
+        while(!SPI1STATLbits.SPIRBF); // wait for transfer to complete
+        data_in[0] = SPI1BUFH;     // read the received value
+        
+        __delay_ms(100);
+        
+        SPI1BUFL = 0x34; // write to buffer for TX
+        while(!SPI1STATLbits.SPIRBF); // wait for transfer to complete
+        data_in[1] = SPI1BUFH;    
+    
+    
+    
+    
+    }
+    
+    
+    
+    return 0;
+}
